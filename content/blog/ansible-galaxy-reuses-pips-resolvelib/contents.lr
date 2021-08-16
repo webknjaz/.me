@@ -82,7 +82,7 @@ to convince others that it's not as crazy as it may seem.
 I switched into the research mode, looked into what interfaces and hooks
 [resolvelib] requires and came up with a tiny 225 LoC long
 [proof-of-concept][ansible-galaxy+resolvelib PoC]. I even [wired the
-demo into GitHub Actions CI/CD][ansible-galaxy+resolvelib+gha] do people
+demo into GitHub Actions CI/CD][ansible-galaxy+resolvelib+gha] so people
 see the result instantly. After that, when folks saw how easy it is to
 connect [resolvelib] and delegate the resolution correctness
 responsibility to it, the team agreed that this refactoring would be
