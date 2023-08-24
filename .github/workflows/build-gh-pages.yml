@@ -16,14 +16,15 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.11
+    - name: Check out src from Git
+      uses: actions/checkout@v3
     - name: Install Lektor from PyPI
       run: >-
         python -m
         pip install
-        -U --user
-        Lektor
-    - name: Check out src from Git
-      uses: actions/checkout@v3
+        --user
+        -r requirements.in
+        -c requirements.txt
     - name: Convert all og_image.svg files into PNG format
       # NOTE: SHA is used for security reasons
       uses: >-
