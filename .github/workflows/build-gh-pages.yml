@@ -1,6 +1,8 @@
+---
+
 name: Build website and publish to GH pages
 
-on:
+on:  # yamllint disable-line rule:truthy
   push:
   pull_request:
 
@@ -54,3 +56,5 @@ jobs:
         force_orphan: true
         deploy_key: ${{ secrets.GH_PAGES_DEPLOYMENT_KEY }}
         publish_dir: www
+
+...
