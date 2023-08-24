@@ -23,7 +23,7 @@ jobs:
         -U --user
         Lektor
     - name: Check out src from Git
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Convert all og_image.svg files into PNG format
       # NOTE: SHA is used for security reasons
       uses: >-
