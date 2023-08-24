@@ -57,4 +57,20 @@ jobs:
         deploy_key: ${{ secrets.GH_PAGES_DEPLOYMENT_KEY }}
         publish_dir: www
 
+  notify-google:
+    name: 📝
+    needs:
+    - build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Wait 2 minutes for GitHub Pages to invalidate the cache
+      run: sleep 120
+    - name: Ping Google about the updated sitemap
+      run: >-
+        curl https://google.com/ping?sitemap=https://webknjaz.me/sitemap.xml
+    - name: Ping Google about the updated RSS feed
+      run: >-
+        curl https://google.com/ping?sitemap=https://webknjaz.me/feed.xml
+
 ...
