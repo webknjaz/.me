@@ -122,9 +122,32 @@ div p.meta {
     max-width: 100%;
 }
 
-.page>.blog-post>p:last-of-type::after {
+/*
+ *
+ * START pilcrow
+ *
+ * This puts a pilcrow (paragraph mark) symbol ❡ at the end of blog
+ * posts. The placement selection works as follows:
+ *
+ *   * If <p> paragraph element is at the very end of an article, it's
+ *     added right after its last character, inline [1]. It also
+ *     matches a paragraph before the footnotes block if it exists [3].
+ *   * If there is no <p> paragraph element at the very end of an
+ *     article, the pilcrow is injected after the very last element in
+ *     the blog post <div>, usually on a dedicated line [2]. If there's
+ *     a footnotes block, the paragraph mark is injected before it.
+ *
+ *  ATTENTION: If changing the CSS selector is necessary, each of the
+ *  corner case combinations must be tested manually. With and without
+ *  paragraph tags. With and without footnotes.
+ *
+ * */
+.page>.blog-post:not(:has(:last-child:is(p)))::after, /* (1) */
+.page>.blog-post>:nth-last-child(2):not(:is(p)) + .footnotes::before, /* (2) */
+.page>.blog-post>p:last-of-type:not(:has(+ :not(.footnotes)))::after /* (3) */ {
     content: '❡';
 }
+/* END pilcrow */
 
 header nav ul {
     list-style: none;
