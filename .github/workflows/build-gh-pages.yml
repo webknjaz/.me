@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Configure ImageMagick in the VM
+      uses: mfinelli/setup-imagemagick@v5
     - name: Switch to Python 3.11
       uses: actions/setup-python@v4
       with:
@@ -26,18 +28,13 @@ jobs:
         -r requirements.in
         -c requirements.txt
     - name: Convert all og_image.svg files into PNG format
-      # NOTE: SHA is used for security reasons
-      uses: >-
-        webknjaz/jruipinto--ImageMagick-action@c63b8f062764d0f64c646800cb426ba353dbc254
-      with:
-        # Ref: https://stackoverflow.com/a/57505917/595220
-        command: >-
-          mogrify
-          -format png
-          -density 1200
-          -resize 3840x
-          content/og_image.svg
-          content/blog/*/og_image.svg
+      run: >-  # Ref: https://stackoverflow.com/a/57505917/595220
+        mogrify
+        -format png
+        -density 1200
+        -resize 3840x
+        content/og_image.svg
+        content/blog/*/og_image.svg
     - name: Drop SVG og_image files
       run: >-
         find .
