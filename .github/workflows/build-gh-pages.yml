@@ -28,7 +28,7 @@ jobs:
     - name: Convert all og_image.svg files into PNG format
       # NOTE: SHA is used for security reasons
       uses: >-
-        jruipinto/ImageMagick-action@9345ee5d2c428f8b010bed966607d55e4008e277
+        webknjaz/jruipinto--ImageMagick-action@c63b8f062764d0f64c646800cb426ba353dbc254
       with:
         # Ref: https://stackoverflow.com/a/57505917/595220
         command: >-
