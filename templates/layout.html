@@ -56,6 +56,7 @@
         <li{% if this._path[:5] in ('/', '/blog') %} class="active"{% endif
           %}><a href="{{ '/' | url }}">Words</a></li>
         {% for href, title in [
+          ['/til', 'TIL'],
           ['/projects', 'Stuff I do'],
           ['/about', "Who's there?"]
         ] %}
