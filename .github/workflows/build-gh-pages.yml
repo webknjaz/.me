@@ -56,6 +56,7 @@ jobs:
         -c requirements.txt
     - name: Convert all og_image.svg files into PNG format
       run: >-  # Ref: https://stackoverflow.com/a/57505917/595220
+        magick
         mogrify
         -format png
         -density 1200
