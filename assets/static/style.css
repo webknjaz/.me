@@ -218,6 +218,7 @@ code, .hll pre {
 }
 
 .hll {
+    overflow: auto;
     margin: 1em auto;
 }
 /* Pygments "trac" theme customizations: */
