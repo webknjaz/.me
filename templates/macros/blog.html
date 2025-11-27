@@ -13,7 +13,7 @@
     {% else %}
       {{ post.author }}
     {% endif %}
-    on {{ post.pub_date }}
+    on <time datetime="{{ post.pub_date }}">{{ post.pub_date }}</time>
   </p>
   {% if from_index and post.excerpt %}
     {# handcrafted excerpt #}
