@@ -1,0 +1,231 @@
+title:
+
+Get Off My LAN: Banishing a Google Home Smart Speaker with OpenWRT by Mistake
+
+---
+author:
+
+Sviatoslav
+
+---
+body:
+
+## A Story of Exile
+
+> *It's not [DNS]*<br>
+> *There's no way it's DNS*<br>
+> *~~It was DNS~~ but not really, no*
+
+Sometimes you don't mean to exile your smart devices to network purgatory,
+but your favorite router operating system gives you the power to do it
+anyway. Here's how I accidentally banished all my Google Home speakers
+from the internet with a seemingly innocent [DHCP] configuration change.
+
+[DHCP]: https://www.rfc-editor.org/rfc/rfc2131
+[DNS]: https://rfc-annotations.research.icann.org/
+
+## The Unwitting Exile Begins
+
+My old Google Home speakers stopped working one day. They'd claim no internet
+connectivity on any voice command — as if they'd been cast out from the
+network, unable to reach the digital world beyond. Factory resets didn't
+help. They'd get stuck during initial setup, insisting they couldn't connect
+to Wi-Fi.
+
+The maddening part? Setting up a mobile hotspot on my phone and pointing
+the speakers to it instead of the home network worked just fine.
+So the hardware wasn't the culprit. And this also meant that Google hadn't
+deprecated them. They just couldn't live on my LAN anymore.
+
+## Signs of the Banished
+
+Initially, I blamed a recent [OpenWRT] update I installed onto my access
+points. The timing seemed suspicious. And the fact that I use my own
+[ImageBuilder]-based immutable deployment process wasn't making the
+guessing game any easier. But after multiple frustrating troubleshooting
+attempts, I noticed something telling in the AP's web interface: the
+Wireless page listed the device with its MAC address, but no
+corresponding IP or hostname — like a ghost, present but not truly there.
+
+Yet I had IPs statically assigned in `dnsmasq` on the main router. Looking
+up the device's MAC address gave me the expected IP, and pinging that IP
+worked fine.
+
+Why would my Google Home speaker think it's air-gapped when I could reach
+it over LAN? It was connected yet convinced it wasn't — the perfect
+network gaslight.
+
+[ImageBuilder]: https://openwrt.org/docs/guide-user/additional-software/imagebuilder
+[OpenWRT]: https://openwrt.org
+
+## Tracking the Exile Order
+
+The AP's logs showed no problems. The device connected to 5 GHz, didn't
+like it, disconnected gracefully, and hopped to 2.4 GHz — all normal
+behavior for a device trying to find its place.
+
+Time to intercept the DHCP conversation and see if the speaker was
+getting the configuration responses correctly. Here's what I grabbed
+with `tcpdump`, having been SSHed into the nearest AP:
+
+```console
+$ tcpdump -i br-lan '(udp port 67 or port 68 or port 546 or port 547) and ether host f4:f5:de:ad:be:ef' -vvv
+01:13:36.373309 IP (tos 0x0, ttl 64, id 13202, offset 0, flags [none], proto UDP (17), length 352)
+    Google-Home.68 > 255.255.255.255.67: [udp sum ok] BOOTP/DHCP, Request from f4:f5:de:ad:be:ef (oui Unknown), length 324, xid 0xc06f922f, Flags [none] (0x0000)
+	 Client-Ethernet-Address f4:f5:de:ad:be:ef (oui Unknown)
+	 Vendor-rfc1048 Extensions
+	   Magic Cookie 0x63825363
+	   DHCP-Message (53), length 1: Request
+	   Requested-IP (50), length 4: Google-Home
+	   MSZ (57), length 2: 1500
+	   Vendor-Class (60), length 41: "dhcpcd-6.8.2:Linux-3.8.13+:armv7l:Marvell"
+	   Hostname (12), length 11: "Google-Home"
+	   Unknown (145), length 1: 1
+	   Parameter-Request (55), length 9:
+	     Subnet-Mask (1), Static-Route (33), Default-Gateway (3), Domain-Name-Server (6)
+	     Domain-Name (15), BR (28), Lease-Time (51), RN (58)
+	     RB (59)
+	   END (255), length 0
+01:13:36.377212 IP (tos 0xc0, ttl 64, id 50324, offset 0, flags [none], proto UDP (17), length 373)
+    turris-omnia-gw.67 > Google-Home.68: [udp sum ok] BOOTP/DHCP, Reply, length 345, xid 0xc06f922f, Flags [none] (0x0000)
+	 Your-IP Google-Home
+	 Server-IP turris-omnia-gw
+	 Client-Ethernet-Address f4:f5:de:ad:be:ef (oui Unknown)
+	 Vendor-rfc1048 Extensions
+	   Magic Cookie 0x63825363
+	   DHCP-Message (53), length 1: ACK
+	   Server-ID (54), length 4: turris-omnia-gw
+	   Lease-Time (51), length 4: 172800
+	   RN (58), length 4: 86400
+	   RB (59), length 4: 151200
+	   Subnet-Mask (1), length 4: 255.255.255.0
+	   BR (28), length 4: 192.168.1.255
+	   Default-Gateway (3), length 4: turris-omnia-gw
+	   Domain-Name-Server (6), length 4: turris-omnia-gw
+	   Domain-Name (15), length 9: "home.lan"
+	   Classless-Static-Route-Microsoft (249), length 9: (10.60.0.1/32:turris-omnia-gw)
+	   Classless-Static-Route (121), length 9: (10.60.0.1/32:turris-omnia-gw)
+	   END (255), length 0
+^C
+2 packets captured
+2 packets received by filter
+0 packets dropped by kernel
+```
+
+There's our smoking gun: extra DHCP options `121` and `249`! I started
+remembering that I'd been experimenting with pushing explicit routes to
+my ISP's internal network nodes via DHCP — unknowingly drafting the exile
+papers for my smart speakers.
+
+## False Trails in the Wilderness
+
+I opened [LuCI]'s network interfaces page of the router that runs a fork
+of OpenWRT and found additional option entries in the advanced DHCP
+settings. Deleted them, restarted `dnsmasq`, and... nothing happened.
+*Nothing!* The exile continued.
+
+The `121` and `249` options were still being sent. The banishment order was
+coming from somewhere else.
+
+[LuCI]: https://openwrt.org/docs/techref/luci
+
+## The Hidden Decree
+
+Checking the [UCI] configuration revealed the true source of exile:
+
+```console
+root@omnia:~# uci show | grep 249
+dhcp.lan.dhcp_option_force='121,10.60.0.1/32,192.168.1.1' '249,10.60.0.1/32,192.168.1.1'
+```
+
+I'd configured forced DHCP options, apparently — a setting not exposed in
+LuCI, only accessible via `uci` commands. These were the real culprit,
+hidden from the web interface.
+
+Revoking the exile was simple:
+```console
+root@omnia:~# uci del dhcp.lan.dhcp_option_force
+root@omnia:~# uci commit dhcp
+root@omnia:~# /etc/init.d/dnsmasq restart
+```
+
+[UCI]: https://openwrt.org/docs/techref/uci
+
+## Understanding the Banishment
+
+Why did this shut out my Google Homes? [RFC 3442] holds the answer under
+the DHCP Client Behavior section:
+
+> *"If the DHCP server returns both a Classless Static Routes option and
+> a Router option, the DHCP client MUST ignore the Router option."*
+
+DHCP options `121` and `249` don't just append routes — they become the
+*only* routes the client would use if it supports them. By providing
+just a path to `10.60.0.1/32` without a default route (`0.0.0.0/0`), I'd
+essentially told my Google Homes: "You can only talk to this one host.
+The rest of the internet doesn't exist for you."
+
+It was network isolation through misconfiguration — an accidental digital
+exile where the devices were physically connected but logically banished
+from the wider network.
+
+[RFC 3442]: https://datatracker.ietf.org/doc/html/rfc3442#page-5
+
+## Granting Amnesty
+
+The proper fix maintains the specific route while granting passage back
+to the internet:
+
+```console
+root@omnia:~# uci add_list dhcp.lan.dhcp_option_force=121,10.60.0.1/32,192.168.1.1
+root@omnia:~# uci add_list dhcp.lan.dhcp_option_force=249,10.60.0.1/32,192.168.1.1
+root@omnia:~# uci add_list dhcp.lan.dhcp_option_force=121,0.0.0.0/0,192.168.1.1
+root@omnia:~# uci add_list dhcp.lan.dhcp_option_force=249,0.0.0.0/0,192.168.1.1
+root@omnia:~# uci commit dhcp
+root@omnia:~# /etc/init.d/dnsmasq restart
+```
+
+The exile was lifted. My Google Homes could rejoin the digital society
+~~and get back to spying on me 🤪~~.
+
+## Lessons from the Exile
+
+OpenWRT gives you the power to banish devices from your network in subtle
+ways. DHCP options `121`/`249` don't supplement routing tables — they replace
+them entirely, making them perfect tools for accidental exile. LuCI won't
+always show you the full picture; `uci show` reveals the hidden decrees.
+And while many devices ignored my misconfigured exile order, Google Home's
+RFC-compliant DHCP client (`dhcpcd-6.8.2`) dutifully accepted its banishment.
+
+When your smart devices claim they're offline while clearly connected, check
+if you've accidentally exiled them. Sometimes the most effective network
+isolation is the one you didn't mean to create.
+
+Well, it wasn't DNS after all — just a routing misconfiguration that prevented
+reaching it. Though the haiku's spirit lives on: when troubleshooting network
+issues, DNS is always a suspect, even when it's innocent.
+
+---
+pub_date_time:
+
+2025-11-27 01:12:00
+
+---
+twitter_handle:
+
+webknjaz
+
+---
+_hidden:
+
+no
+
+...
+---
+excerpt:
+
+Sometimes you don't mean to banish your smart devices to network purgatory,
+but [OpenWRT] gives you the power to do it anyway. This is a story of exile
+and adventures on the way back home.
+
+[OpenWRT]: https://openwrt.org
