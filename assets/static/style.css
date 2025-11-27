@@ -163,6 +163,14 @@ header nav ul li {
     border-radius: 0.25rem;
 }
 
+header nav a {
+    text-decoration: underline;
+}
+
+header nav .active a {
+    text-decoration: none;
+}
+
 div.page {
     background: #f1fbfe;
     background: rgb(255, 255, 255);
