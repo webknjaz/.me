@@ -40,7 +40,7 @@ jobs:
           echo -e '#!/bin/sh\nexec eatmydata /usr/bin/apt-get $@' | sudo tee /usr/local/bin/apt-get && sudo chmod +x /usr/local/bin/apt-get
         fi
     - name: Configure ImageMagick in the VM
-      uses: mfinelli/setup-imagemagick@v7
+      uses: mfinelli/setup-imagemagick@v8
     - name: Switch to Python 3.11
       uses: actions/setup-python@v6
       with:
