@@ -3,4 +3,14 @@
 {% block title %}{{ this.title }}{% endblock %}
 {% block body %}
   {{ render_blog_post(this) }}
+
+  <aside class="post-sponsor" aria-label="Support my work">
+    <img src="https://github.com/webknjaz.png?size=96"
+         alt="" width="48" height="48" loading="lazy">
+    <p>
+      Liked this? I write here and maintain FOSS mostly in my spare time.
+      <a href="https://github.com/sponsors/webknjaz">Sponsoring me on
+      GitHub</a> is a nice way to say thanks 💰
+    </p>
+  </aside>
 {% endblock %}
