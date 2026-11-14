@@ -78,5 +78,5 @@ werkzeug==2.3.8
 # The following packages are considered to be unsafe in a requirements file:
 pip==26.2
     # via lektor
-setuptools==70.0.0
+setuptools==84.1.0
     # via lektor
