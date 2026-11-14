@@ -1,0 +1,181 @@
+title: pip-tools: From Jazzband to PyPA
+---
+author: Sviatoslav
+---
+twitter_handle: webknjaz
+---
+body:
+
+[pip-tools] v7.7.0 is out, and it's the first release we've shipped from
+its new home under the [Python Packaging Authority][PyPA]. [Stephen]
+usually writes the release notes and I usually ~~procrastinate~~ plan to
+write something "later". But a move like this doesn't happen every
+decade (well, almost exactly once a decade), so here's my half of the
+story.
+
+[pip-tools]: https://pip-tools.pypa.io
+[PyPA]: https://www.pypa.io
+[Stephen]: https://github.com/sponsors/sirosen
+
+[//]: # (PLUGIN-READ-FULL-POST)
+
+## Nine and a half years of jazz 🎷
+
+[Vincent][nvie] moved pip-tools into [Jazzband] back in [February
+2017][into Jazzband]. Jazzband's idea was simple and kind of radical:
+anyone who joined got push access, and projects were looked after by the
+crowd. It worked surprisingly well for a long time. I became one of the
+project leads [in June 2025][webknjaz lead], and Stephen [followed in
+August][sirosen lead].
+
+I'll admit something. I used to argue *against* moving pip-tools to the
+PyPA. My worry was that it would make it harder for new people to get
+involved, since Jazzband gave anybody a way in. That argument stopped
+mattering pretty quickly.
+
+[nvie]: https://github.com/sponsors/nvie
+[Jazzband]: https://jazzband.co
+[into Jazzband]: https://github.com/pypa/pip-tools/issues/447#issuecomment-280703583
+[webknjaz lead]: https://github.com/jazzband/help/issues/391#issuecomment-2961416506
+[sirosen lead]: https://github.com/jazzband/help/issues/404#issuecomment-3173763162
+
+## The music stops
+
+On March 14, 2026, [Jannis] published [Sunsetting Jazzband] along with a
+[wind-down plan]. He gave three reasons:
+
+- the flood of AI-generated PRs made "anyone can push" untenable
+- the whole operation depended on a single person
+- the rest of the ecosystem had moved on to things like trusted
+  publishing
+
+Django projects had [Django Commons] to go to. Projects like pip-tools
+didn't have a designated successor, so we had to pick one ourselves.
+
+[Jannis]: https://github.com/sponsors/jezdez
+[Sunsetting Jazzband]: https://jazzband.co/news/2026/03/14/sunsetting-jazzband
+[wind-down plan]: https://jazzband.co/news/2026/03/14/wind-down-plan
+[Django Commons]: https://github.com/django-commons
+
+## Democracy, the mailing list edition 🗳️
+
+I opened ["🎺 Life after Jazzband 🎷"][Life after Jazzband] the same
+evening. Stephen and I had met in person the year before and found we
+agreed on most things about maintenance, so we didn't need much
+discussion. On March 19, I started [a vote on the pypa-committers
+list][PyPA vote]. I pitched pip-tools as an early DIY lock file
+implementation that Dependabot relies on and that inspired parts of uv.
+
+Then came the bureaucratic hiccup: Stephen couldn't vote. He wasn't on
+the mailing list, even though he's a PyPA committer. [Dustin] fixed that
+in about five minutes. On April 2, I [declared the vote passed][PyPA vote
+result] with fourteen +1s and no objections.
+
+We also checked with the emeritus leads still listed in Jazzband.
+[Vincent Philippon][vphilippon], [David Genest][davidovich] and [Albert
+Tugushev][atugushev] all gave the move their blessing.
+[Vincent's reply][vphilippon reply] is worth reading; it ends with
+"many joyful tears". [Hugo] reminded everyone that pip-tools is used to
+[release CPython itself][release-tools], no pressure 😅.
+
+[Life after Jazzband]: https://github.com/pypa/pip-tools/discussions/2353
+[PyPA vote]: https://mail.python.org/archives/list/pypa-committers@python.org/thread/QOWFH2ZAYYFNIYEEK4PODE56JW5RWCWL/
+[PyPA vote result]: https://mail.python.org/archives/list/pypa-committers@python.org/message/RMEHCGGJ6EW7EWYZ77H6RWBRKMZ3GLWO/
+[Dustin]: https://github.com/sponsors/di
+[vphilippon]: https://github.com/sponsors/vphilippon
+[davidovich]: https://github.com/sponsors/davidovich
+[atugushev]: https://github.com/sponsors/atugushev
+[vphilippon reply]: https://github.com/pypa/pip-tools/discussions/2353#discussioncomment-16296608
+[Hugo]: https://github.com/sponsors/hugovk
+[release-tools]: https://github.com/python/release-tools
+
+## …and then we waited
+
+Agreeing to move is the easy part. Actually moving required the Jazzband
+side to hand things over, and the [wind-down plan] scheduled transfers
+for June through December. After a chat at EuroPython, Jannis came back
+in October and said, roughly, "let's just do it now". So we did.
+
+## The actual move 🚚
+
+Here's what happened, roughly in order:
+
+- **October 12:** Jannis added Stephen and me as PyPI owners.
+- **October 13:** [Pradyun] got temporary admin and transferred the repo
+  to `pypa/`, then posted "IDK who all lost access" 😅.
+- [Jacob] set up DNS, and the docs now live at
+  [pip-tools.pypa.io][pip-tools].
+- I reinstalled the GitHub Apps and moved Read the Docs from legacy
+  webhooks to its GitHub App. Codecov had somehow decided our default
+  branch was one of Stephen's feature branches 🙃.
+- A fun gotcha: the `pypi` deployment environment still required
+  approval from the `jazzband/pip-tools-leads` team, even though the
+  repo was no longer in Jazzband. Apparently GitHub keeps references to
+  teams from another org after a transfer. Now it uses PyPA's team.
+- Stephen did the bulk of the cleanup in the repo:
+  - project links and the switch to the PSF Code of Conduct
+  - removing the Jazzband upload step from the release workflow
+  - a brand new `SECURITY.md`
+  - re-wiring Trusted Publishing
+
+All the bookkeeping is in [jazzband/help#435][Jazzband help issue].
+Jannis was extremely thorough on his end, down to reconciling fourteen
+upload records nobody but him remembered existed.
+
+[Pradyun]: https://github.com/sponsors/pradyunsg
+[Jacob]: https://github.com/sponsors/JacobCoffee
+[Jazzband help issue]: https://github.com/jazzband/help/issues/435
+
+## So what changes for you?
+
+Almost nothing:
+
+- GitHub redirects the old URLs.
+- `pip install pip-tools` works exactly as before.
+- The docs have a new address.
+
+v7.7.0 is also the first real end-to-end test of the new release
+pipeline. If you're reading this, it probably worked 🤞.
+
+The interesting changes are in the release itself: Python 3.15 support,
+dropping 3.9, a new `pip-tools[stable]` extra and more. Stephen covers
+them [in the changelog][changelog]. Go read that instead of my ramblings.
+
+[changelog]: https://pip-tools.pypa.io/en/stable/changelog/
+
+## Thanks 💜
+
+Thank you, Jannis, for a decade of Jazzband and for such a careful
+handover. Thanks to Pradyun, Dustin, Jacob and Hugo for doing the
+behind-the-scenes work. Thanks to everyone on pypa-committers who voted,
+and to the emeritus maintainers for so many years of work.
+
+And thanks, Stephen, for doing most of the heavy lifting, as usual. If
+you'd like to keep him going, here's [his sponsors page][Stephen]. Mine
+is [right here][webknjaz], too.
+
+See you in the new home! 🖖
+
+[webknjaz]: https://github.com/sponsors/webknjaz
+
+---
+pub_date_time:
+
+2026-11-14 00:00:00
+
+---
+_hidden:
+
+yes
+
+---
+excerpt:
+
+After nearly a decade in [Jazzband], [pip-tools] has moved under the
+[PyPA]. v7.7.0 is our first release from the new home, so here's how it
+went: a mailing-list vote, a lot of waiting, and a GitHub transfer that
+left a few Jazzband ghosts behind.
+
+[Jazzband]: https://jazzband.co
+[pip-tools]: https://pip-tools.pypa.io
+[PyPA]: https://www.pypa.io
